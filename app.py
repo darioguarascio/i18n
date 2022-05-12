@@ -2,7 +2,7 @@
 
 from flask import Flask
 from flask import request
-import sys, json, os, requests, yaml
+import sys, json, os, requests, yaml, time
 
 
 import json, re, yaml
@@ -107,6 +107,7 @@ def autotranslate():
             r = requests.post(os.getenv('LIBRETRANSLATE_URL'), json={"q": data['payload']['en'], "source":"en", "target": target })
             if r.status_code == 200:
                 langs[target] = r.json()['translatedText']
+                time.sleep(1)
 
         except Exception as e:
             print('error', file=sys.stderr)
