@@ -103,9 +103,13 @@ def autotranslate():
 
     langs = { "autotranslate" : True }
     for target in os.getenv('AUTOTRANSLATE').split(','):
-        r = requests.post(os.getenv('LIBRETRANSLATE_URL'), json={"q": data['payload']['en'], "source":"en", "target": target })
-        if r.status_code == 200:
-            langs[target] = r.json()['translatedText']
+        try:
+            r = requests.post(os.getenv('LIBRETRANSLATE_URL'), json={"q": data['payload']['en'], "source":"en", "target": target })
+            if r.status_code == 200:
+                langs[target] = r.json()['translatedText']
+        except:
+            print(target, file=sys.stderr)
+            pass
 
     print(langs, file=sys.stderr)
     requests.patch(directus, json=langs )
