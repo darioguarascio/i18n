@@ -107,7 +107,7 @@ def autotranslate():
             r = requests.post(os.getenv('LIBRETRANSLATE_URL'), json={"q": data['payload']['en'], "source":"en", "target": target })
             if r.status_code == 200:
                 langs[target] = r.json()['translatedText']
-                time.sleep(1)
+                print(r.json(), file=sys.stderr)
 
         except Exception as e:
             print('error', file=sys.stderr)
