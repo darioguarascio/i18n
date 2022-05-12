@@ -18,9 +18,8 @@ services:
   redis:
     image: redis
     container_name: i18n.redis
-    expose:
-      - "6379"
-      # - "${REDIS_LISTEN:-127.0.0.1:6379:6379}"
+    # ports:
+    #   - "${REDIS_LISTEN:-127.0.0.1:6379:6379}"
     # volumes:
     #   - ./local/redis.conf:/usr/local/etc/redis/redis.conf
     # command: redis-server /usr/local/etc/redis/redis.conf
@@ -28,7 +27,7 @@ services:
   directus:
     container_name: i18n.directus
     restart: always
-    image: directus/directus:${DIRECTUS_VERSION:-9.7.1}
+    image: directus/directus:${DIRECTUS_VERSION:-9.10.0}
     ports:
       - ${DIRECTUS_LISTEN:-8055}:8055
     volumes:
@@ -52,11 +51,11 @@ services:
       CACHE_AUTO_PURGE: 'true'
       CACHE_STORE: redis
       CACHE_REDIS: redis://i18n.redis:6379/2
-      CACHE_NAMESPACE: virail-i18n
+      CACHE_NAMESPACE: i18n
 
 
   postgresql:
-    image: postgis/postgis
+    image: postgres
     container_name: i18n.postgresql
     restart: always
     shm_size: '2gb'
@@ -77,10 +76,8 @@ services:
     container_name: i18n.hookserver
     build:
       context: ./
-
     ports:
       - "${HOOKSERVER_LISTEN:-127.0.0.1:5000:80}"
-
     environment:
       DB_HOST: ${DB_HOST:-i18n.postgresql}
       DB_PORT: ${DB_PORT:-5432}
