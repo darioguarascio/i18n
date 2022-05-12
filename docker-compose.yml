@@ -1,0 +1,93 @@
+version: "3.5"
+
+volumes:
+  data-postgresql:
+    driver: local
+  data-directus:
+    driver: local
+
+services:
+
+  libretranslate:
+    image: libretranslate/libretranslate
+    container_name: i18n.libretranslate
+    restart: unless-stopped
+    # ports:
+    #   - 5000:5000
+
+  redis:
+    image: redis
+    container_name: i18n.redis
+    expose:
+      - "6379"
+      # - "${REDIS_LISTEN:-127.0.0.1:6379:6379}"
+    # volumes:
+    #   - ./local/redis.conf:/usr/local/etc/redis/redis.conf
+    # command: redis-server /usr/local/etc/redis/redis.conf
+
+  directus:
+    container_name: i18n.directus
+    restart: always
+    image: directus/directus:${DIRECTUS_VERSION:-9.7.1}
+    ports:
+      - ${DIRECTUS_LISTEN:-8055}:8055
+    volumes:
+      - data-directus:/directus/uploads
+    env_file:
+      - ${DIRECTUS_ENV_FILE:-.directus.env}
+    environment:
+      KEY: ${DIRECTUS_ENV_KEY:-key}
+      SECRET: ${DIRECTUS_ENV_SECRET:-secret}
+      DB_CLIENT: pg
+      DB_HOST: ${DIRECTUS_ENV_DB_HOST:-i18n.postgresql}
+      DB_PORT: ${DIRECTUS_ENV_DB_PORT:-5432}
+      DB_DATABASE: ${DIRECTUS_ENV_DB_DATABASE:-postgres}
+      DB_USER: ${DIRECTUS_ENV_DB_USER:-postgres}
+      DB_PASSWORD: ${DIRECTUS_ENV_DB_PASSWORD:-postgres}
+      CACHE_ENABLED: 'false'
+      PUBLIC_URL: ${DIRECTUS_BASE_URI:-http://localhost:8055}
+      AUTH_PROVIDERS: ${DIRECTUS_AUTH_PROVIDERS:-}
+      CACHE_ENABLED: 'true'
+      CACHE_TTL: 7d
+      CACHE_AUTO_PURGE: 'true'
+      CACHE_STORE: redis
+      CACHE_REDIS: redis://i18n.redis:6379/2
+      CACHE_NAMESPACE: virail-i18n
+
+
+  postgresql:
+    image: postgis/postgis
+    container_name: i18n.postgresql
+    restart: always
+    shm_size: '2gb'
+    volumes:
+      - data-postgresql:/var/lib/postgresql/data
+    # ports:
+    #   - ${POSTGRES_LISTEN:-127.0.0.1:5432:5432}
+    environment:
+      POSTGRES_PASSWORD:
+      POSTGRES_DB:
+      POSTGRES_USER:
+      POSTGRES_HOST_AUTH_METHOD: ${POSTGRES_HOST_AUTH_METHOD:-trust}
+
+
+
+  hookserver:
+    image: hookserver
+    container_name: i18n.hookserver
+    build:
+      context: ./
+
+    ports:
+      - "${HOOKSERVER_LISTEN:-127.0.0.1:5000:80}"
+
+    environment:
+      DB_HOST: ${DB_HOST:-i18n.postgresql}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_DATABASE: ${DB_DATABASE:-postgres}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DIRECTUS_TOKEN:
+      AUTOTRANSLATE:
+      LIBRETRANSLATE_URL:
+      DIRECTUS_I18N:
