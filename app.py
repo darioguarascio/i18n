@@ -1,11 +1,10 @@
 #!/usr/bin/python3
 
+from mtranslate import translate
 from flask import Flask
 from flask import request
-import sys, json, os, requests, yaml, time
+import sys, json, os, requests, yaml, time, re
 
-
-import json, re, yaml
 def build_job(file):
 
     def branch(tree, vector, value):
@@ -104,10 +103,17 @@ def autotranslate():
     langs = { "autotranslate" : True }
     for target in os.getenv('AUTOTRANSLATE').split(','):
         try:
-            r = requests.post(os.getenv('LIBRETRANSLATE_URL'), json={"q": data['payload']['en'], "source":"en", "target": target })
+            try:
+                r = requests.post(os.getenv('LIBRETRANSLATE_URL'), json={"q": data['payload']['en'], "source":"en", "target": target })
+            except:
+                pass
             if r.status_code == 200:
                 langs[target] = r.json()['translatedText']
-                print(r.json(), file=sys.stderr)
+            else:
+                langs[target] = translate(data['payload']['en'], target,"en")
+
+            print(langs, file=sys.stderr)
+
 
         except Exception as e:
             print('error', file=sys.stderr)
