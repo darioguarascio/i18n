@@ -101,11 +101,14 @@ def autotranslate():
     data = json.loads(request.data)
     directus = os.getenv('DIRECTUS_I18N').format(data['payload']['key'], os.getenv('DIRECTUS_TOKEN'))
 
+    langs = { "autotranslate" : True }
     for target in os.getenv('AUTOTRANSLATE').split(','):
         r = requests.post(os.getenv('LIBRETRANSLATE_URL'), json={"q": data['payload']['en'], "source":"en", "target": target })
         if r.status_code == 200:
-            x = requests.patch( directus, json={ target : r.json()['translatedText'] } )
-        requests.patch(directus, json={ "autotranslate" : True } )
+            langs[target] = r.json()['translatedText']
+
+    print(langs, file=sys.stderr)
+    requests.patch(directus, json=langs )
 
     return 'ok'
 
