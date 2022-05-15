@@ -105,12 +105,13 @@ def autotranslate():
         try:
             try:
                 r = requests.post(os.getenv('LIBRETRANSLATE_URL'), json={"q": data['payload']['en'], "source":"en", "target": target })
+                if r.status_code == 200:
+                    langs[target] = r.json()['translatedText']
+                else:
+                    raise Exception("Language {} not found".format(target))
             except:
-                pass
-            if r.status_code == 200:
-                langs[target] = r.json()['translatedText']
-            else:
                 langs[target] = translate(data['payload']['en'], target,"en")
+                pass
 
             print(langs, file=sys.stderr)
 
