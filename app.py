@@ -131,8 +131,9 @@ def export(lang):
     directus = os.getenv('DIRECTUS_I18N').format('', os.getenv('DIRECTUS_TOKEN')).replace('/?','?limit=-1&fields=key,{}&'.format(lang))
     r = requests.get(directus)
     file = {}
-    for e in r.json()['data'] if e[lang] is not None:
-        file[ e['key'] ] = e[lang]
+    for e in r.json()['data']:
+        if e[lang] is not None:
+            file[ e['key'] ] = e[lang]
 
     return yaml.dump(build_job(file), default_flow_style=False)
 
