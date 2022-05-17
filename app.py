@@ -128,7 +128,7 @@ def autotranslate():
 
 @app.route('/export/<string:lang>')
 def export(lang):
-    directus = os.getenv('DIRECTUS_I18N').format('', os.getenv('DIRECTUS_TOKEN')).replace('/?','?limit=-1&fields=key,{}&'.format(lang))
+    directus = os.getenv('DIRECTUS_I18N').format('', os.getenv('DIRECTUS_TOKEN')).replace('/?','?filter=[{}][_nnull]=true&limit=-1&fields=key,{}&'.format(lang,lang))
     r = requests.get(directus)
     file = {}
     for e in r.json()['data']:
