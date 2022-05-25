@@ -3,7 +3,7 @@
 from mtranslate import translate
 from flask import Flask
 from flask import request
-import sys, json, os, requests, yaml, time, re
+import sys, json, os, requests, yaml, time, re, binascii
 
 def build_job(file):
 
@@ -101,16 +101,35 @@ def autotranslate():
     directus = os.getenv('DIRECTUS_I18N').format(data['payload']['key'], os.getenv('DIRECTUS_TOKEN'))
 
     langs = { "autotranslate" : True }
+
+    originText = data['payload']['en']
+    translatable = originText
+    mapping = {}
+
+    for mtch in re.findall("\{\{.*?\}\}", originText):
+        iid = "0x{}".format((binascii.b2a_hex(os.urandom(6)).decode('ascii')))
+        mapping[iid] = mtch
+        translatable = translatable.replace(mtch, iid)
+
     for target in os.getenv('AUTOTRANSLATE').split(','):
         try:
             try:
-                r = requests.post(os.getenv('LIBRETRANSLATE_URL'), json={"q": data['payload']['en'], "source":"en", "target": target })
+                r = requests.post(os.getenv('LIBRETRANSLATE_URL'), json={"q": translatable, "source":"en", "target": target })
                 if r.status_code == 200:
-                    langs[target] = r.json()['translatedText']
+                    translated = r.json()['translatedText']
+
+                    for ee in mapping:
+                        translated = translated.replace(ee, mapping[ee])
+
+                    langs[target] = translated
                 else:
                     raise Exception("Language {} not found".format(target))
             except:
-                langs[target] = translate(data['payload']['en'], target,"en")
+                translated = translate(translatable, target,"en")
+                for ee in mapping:
+                    translated = translated.replace(ee, mapping[ee])
+
+                langs[target] = translated
                 pass
 
             print(langs, file=sys.stderr)
