@@ -203,7 +203,6 @@ def export(lang):
                         multi_lang['translations'] = row
                         file['data'].append(multi_lang)
 
-
                     else:
                         return dict(info="No data found.")
 
@@ -221,16 +220,16 @@ def export(lang):
     # Return Various formats:
     if file_format:
         if file_format == 'json':
-            return json.dumps(build_job(file))
+            return json.dumps(file)
         elif file_format == 'yaml':
-            return yaml.dump(build_job(file), default_flow_style=False)
+            return yaml.dump(file)
         elif file_format == 'xml':
-            return dict2xml.dict2xml(build_job(file))
+            return dict2xml.dict2xml(file)
         else:
             return 'Format not supported'
 
     else:
-        return yaml.dump(build_job(file), default_flow_style=False)
+        return yaml.dump(file)
 
 
 if __name__ == "__main__":
