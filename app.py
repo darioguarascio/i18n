@@ -3,7 +3,9 @@
 from mtranslate import translate
 from flask import Flask
 from flask import request
-import sys, json, os, requests, yaml, time, re, binascii
+import sys, json, os, requests, yaml, re, binascii, dict2xml
+from dotenv import load_dotenv
+
 
 def build_job(file):
 
@@ -76,12 +78,14 @@ def build_job(file):
             if len(vector) == 1 and len(tree[key]) == 1:
                 tree[key] = value.split(",")
         else:
-            # Add dictionaries together
+          try:
             tree.update({key: value \
                 if len(vector) == 1 \
                 else branch(tree[key] if key in tree else {},
                             vector[1:],
                             value)})
+          except:
+           pass
         return tree
 
     rowObj = {}
@@ -91,9 +95,8 @@ def build_job(file):
     return rowObj
 
 
-
-
 app = Flask(__name__)
+
 
 @app.route('/autotranslate',  methods = ['POST'])
 def autotranslate():
@@ -145,21 +148,91 @@ def autotranslate():
 
     return 'ok'
 
-@app.route('/export/<string:lang>')
+
+@app.route('/export/<string:lang>',  methods=['GET'])
 def export(lang):
-    directus = os.getenv('DIRECTUS_I18N').format('', os.getenv('DIRECTUS_TOKEN')).replace('/?','?limit=-1&fields=key,{}&'.format(lang))
+    """
+    Export all translations to a file
+    :param lang: Language to export if ALL export all languages
+    :return: File with translations
+    """
+
+    args = request.args
+    category = args.get('category')
+    file_format = args.get('format')
+
+    base_url = os.getenv('DIRECTUS_I18N').format('', os.getenv('DIRECTUS_TOKEN'))
+
+    directus = base_url.replace('/?', '?limit=-1&')
+
+    # All option to return all translations:
+    if lang == 'all':
+        get_i18n_keys = requests.get(base_url.replace('items', 'fields'))
+        languages = [x['field'] for x in get_i18n_keys.json()['data'] if len(x['field']) == 2]
+        directus += f'&fields=key,{",".join(languages)}'
+
+    else:
+        directus += f'&fields=key,{lang}'
+
+
+    if category:
+        directus += f"&filter[category]={category}"
+
+
     r = requests.get(directus)
-    file = {}
-    for e in r.json()['data']:
-        if e[lang] is not None:
-            file[ e['key'] ] = e[lang]
+    file = {'data': []}
+    if r.status_code == 200:
+        if r.json()['data']:
+            if lang != 'all':
+                for row in r.json()['data']:
+                    single_lang = {}
+                    if row[lang]:
+                        single_lang[row['key']] = row[lang]
+                        file['data'].append(single_lang)
+                    else:
+                        return dict(info="No data found.")
 
-    return yaml.dump(build_job(file), default_flow_style=False)
+            else:
+                for row in r.json()['data']:
+                    # Drop keys from row if null:
+                    row = {k: v for k, v in row.items() if v is not None}
+                    key_value = row.pop('key')
+                    multi_lang = {}
+                    if row:
+                        multi_lang['key'] = key_value
+                        multi_lang['translations'] = row
+                        file['data'].append(multi_lang)
 
 
+                    else:
+                        return dict(info="No data found.")
+
+            file['count'] = len(file['data'])
+
+
+        else:
+            return dict(error="No data found.", status=r.status_code)
+
+    else:
+        # Return JSON error
+        return dict(error="Error fetching data from Directus", status=r.status_code,
+                    response=r.json())
+
+    # Return Various formats:
+    if file_format:
+        if file_format == 'json':
+            return json.dumps(build_job(file))
+        elif file_format == 'yaml':
+            return yaml.dump(build_job(file), default_flow_style=False)
+        elif file_format == 'xml':
+            return dict2xml.dict2xml(build_job(file))
+        else:
+            return 'Format not supported'
+
+    else:
+        return yaml.dump(build_job(file), default_flow_style=False)
 
 
 if __name__ == "__main__":
+    load_dotenv()
     app.run(port=80, host="0.0.0.0", debug=True)
-
-
