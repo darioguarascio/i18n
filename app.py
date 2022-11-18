@@ -149,17 +149,18 @@ def autotranslate():
     return 'ok'
 
 
-@app.route('/export/<string:lang>',  methods=['GET'])
-def export(lang):
+@app.route('/export-v2/<string:lang>',  methods=['GET'])
+def detailed_export(lang):
     """
     Export all translations to a file
     :param lang: Language to export if ALL export all languages
     :return: File with translations
     """
-
     args = request.args
     category = args.get('category')
     file_format = args.get('format')
+    limit = args.get('limit')
+    offset = args.get('offset')
 
     base_url = os.getenv('DIRECTUS_I18N').format('', os.getenv('DIRECTUS_TOKEN'))
 
@@ -174,10 +175,8 @@ def export(lang):
     else:
         directus += f'&fields=key,{lang}'
 
-
     if category:
         directus += f"&filter[category]={category}"
-
 
     r = requests.get(directus)
     file = {'data': []}
@@ -186,11 +185,10 @@ def export(lang):
             if lang != 'all':
                 for row in r.json()['data']:
                     single_lang = {}
-                    if row[lang]:
-                        single_lang[row['key']] = row[lang]
-                        file['data'].append(single_lang)
-                    else:
-                        return dict(info="No data found.")
+                    if lang in row:
+                        if row[lang]:
+                            single_lang[row['key']] = row[lang]
+                            file['data'].append(single_lang)
 
             else:
                 for row in r.json()['data']:
@@ -203,11 +201,18 @@ def export(lang):
                         multi_lang['translations'] = row
                         file['data'].append(multi_lang)
 
-                    else:
-                        return dict(info="No data found.")
+                if not limit:
+                    limit = 2000
+
+                if not offset:
+                    offset = 0
+                file['data'] = file['data'][int(offset):int(offset) + int(limit)]
+                file['offset'] = int(offset)
+                file['limit'] = int(limit)
 
             file['count'] = len(file['data'])
-
+            if file['count'] == 0:
+                return dict(error="No data found.")
 
         else:
             return dict(error="No data found.", status=r.status_code)
@@ -220,16 +225,29 @@ def export(lang):
     # Return Various formats:
     if file_format:
         if file_format == 'json':
-            return json.dumps(file)
+            return json.dumps(build_job(file))
         elif file_format == 'yaml':
-            return yaml.dump(file)
+            return yaml.dump(build_job(file), default_flow_style=False)
         elif file_format == 'xml':
-            return dict2xml.dict2xml(file)
+            return dict2xml.dict2xml(build_job(file))
         else:
             return 'Format not supported'
 
     else:
-        return yaml.dump(file)
+        return yaml.dump(build_job(file), default_flow_style=False)
+
+
+@app.route('/export/<string:lang>')
+def export(lang):
+    directus = os.getenv('DIRECTUS_I18N').format('', os.getenv('DIRECTUS_TOKEN')).replace('/?','?limit=-1&fields=key,{}&'.format(lang))
+    r = requests.get(directus)
+    file = {}
+    for e in r.json()['data']:
+        if e[lang] is not None and e[lang] != '':
+            file[ e['key'] ] = e[lang]
+    #return json.dumps(file)
+    return yaml.dump(build_job(file), default_flow_style=False)
+
 
 
 if __name__ == "__main__":
