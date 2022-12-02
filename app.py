@@ -159,8 +159,8 @@ def detailed_export(lang):
     args = request.args
     category = args.get('category')
     file_format = args.get('format')
-    limit = args.get('limit')
-    offset = args.get('offset')
+    limit = args.get('limit')  # Will be used in the future
+    offset = args.get('offset')  # Will be used in the future
 
     base_url = os.getenv('DIRECTUS_I18N').format('', os.getenv('DIRECTUS_TOKEN'))
 
@@ -179,47 +179,38 @@ def detailed_export(lang):
         directus += f"&filter[category]={category}"
 
     r = requests.get(directus)
-    file = {'data': []}
     if r.status_code == 200:
         if r.json()['data']:
             if lang != 'all':
+                single_lang = {}
                 for row in r.json()['data']:
-                    single_lang = {}
                     if lang in row:
                         if row[lang]:
                             single_lang[row['key']] = row[lang]
-                            file['data'].append(single_lang)
+
+                file = single_lang
 
             else:
+                multi_lang = {}
                 for row in r.json()['data']:
                     # Drop keys from row if null:
                     row = {k: v for k, v in row.items() if v is not None}
                     key_value = row.pop('key')
-                    multi_lang = {}
                     if row:
-                        multi_lang['key'] = key_value
-                        multi_lang['translations'] = row
-                        file['data'].append(multi_lang)
+                        multi_lang[key_value] = row
 
-                if not limit:
-                    limit = 2000
+                file = multi_lang
 
-                if not offset:
-                    offset = 0
-                file['data'] = file['data'][int(offset):int(offset) + int(limit)]
-                file['offset'] = int(offset)
-                file['limit'] = int(limit)
 
-            file['count'] = len(file['data'])
-            if file['count'] == 0:
-                return dict(error="No data found.")
+            if not file:
+                return dict(error="No data found.", status=404)
 
         else:
-            return dict(error="No data found.", status=r.status_code)
+            return dict(error="No data found.", status=404)
 
     else:
         # Return JSON error
-        return dict(error="Error fetching data from Directus", status=r.status_code,
+        return dict(error="Error fetching data from Directus", status=500,
                     response=r.json())
 
     # Return Various formats:
@@ -245,7 +236,6 @@ def export(lang):
     for e in r.json()['data']:
         if e[lang] is not None and e[lang] != '':
             file[ e['key'] ] = e[lang]
-    #return json.dumps(file)
     return yaml.dump(build_job(file), default_flow_style=False)
 
 
