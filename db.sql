@@ -136,6 +136,7 @@ i18n	\N	#3399FF	\N	\N	\N	\N	25	\N	all	\N	#app, #main-content, body {\n  --primar
 
 COPY public.directus_webhooks (name, method, url, status, data, actions, collections, headers) FROM stdin;
 Autotranslate	POST	http://i18n.hookserver/autotranslate	active	t	create	i18n	\N
+Autotranslate-update	POST	http://i18n.hookserver/autotranslate-update	active	t	update	i18n	\N
 \.
 
 

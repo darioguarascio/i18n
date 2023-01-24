@@ -148,6 +148,64 @@ def autotranslate():
 
     return 'ok'
 
+@app.route('/autotranslate-update',  methods=['POST'])
+def autotranslate_update():
+    data = json.loads(request.data)
+
+    if 'en' in data['payload'].keys():
+
+        keys = data['keys']
+
+        for key in keys:
+
+            directus = os.getenv('DIRECTUS_I18N').format(key, os.getenv('DIRECTUS_TOKEN'))
+
+            langs = {"autotranslate": True}
+
+            originText = data['payload']['en']
+            translatable = originText
+            mapping = {}
+
+            for mtch in re.findall("\{\{.*?\}\}", originText):
+                iid = "0x{}".format((binascii.b2a_hex(os.urandom(6)).decode('ascii')))
+                mapping[iid] = mtch
+                translatable = translatable.replace(mtch, iid)
+
+            for target in os.getenv('AUTOTRANSLATE').split(','):
+                try:
+                    try:
+                        r = requests.post(os.getenv('LIBRETRANSLATE_URL'),
+                                          json={"q": translatable, "source": "en", "target": target})
+                        if r.status_code == 200:
+                            translated = r.json()['translatedText']
+
+                            for ee in mapping:
+                                translated = translated.replace(ee, mapping[ee])
+
+                            langs[target] = translated
+                        else:
+                            raise Exception("Language {} not found".format(target))
+                    except:
+                        translated = translate(translatable, target, "en")
+                        for ee in mapping:
+                            translated = translated.replace(ee, mapping[ee])
+
+                        langs[target] = translated
+                        pass
+
+                    print(langs, file=sys.stderr)
+
+
+                except Exception as e:
+                    print('error', file=sys.stderr)
+                    print(target, file=sys.stderr)
+                    print(e, file=sys.stderr)
+                    pass
+
+            requests.patch(directus, json=langs)
+
+    return 'ok'
+
 
 @app.route('/export-v2/<string:lang>',  methods=['GET'])
 def detailed_export(lang):
