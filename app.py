@@ -152,7 +152,7 @@ def autotranslate():
 def autotranslate_update():
     data = json.loads(request.data)
 
-    if 'en' in data['payload'].keys():
+    if 'retranslate' in data['payload'].keys() and data['payload']['retranslate'] == True:
 
         keys = data['keys']
 
@@ -160,49 +160,55 @@ def autotranslate_update():
 
             directus = os.getenv('DIRECTUS_I18N').format(key, os.getenv('DIRECTUS_TOKEN'))
 
-            langs = {"autotranslate": True}
+            originText = requests.get(directus).json()['data']['en']
 
-            originText = data['payload']['en']
-            translatable = originText
-            mapping = {}
+            if originText:
 
-            for mtch in re.findall("\{\{.*?\}\}", originText):
-                iid = "0x{}".format((binascii.b2a_hex(os.urandom(6)).decode('ascii')))
-                mapping[iid] = mtch
-                translatable = translatable.replace(mtch, iid)
+                langs = {"autotranslate": True, "retranslate": False}
 
-            for target in os.getenv('AUTOTRANSLATE').split(','):
-                try:
+                translatable = originText
+                mapping = {}
+
+                for mtch in re.findall("\{\{.*?\}\}", originText):
+                    iid = "0x{}".format((binascii.b2a_hex(os.urandom(6)).decode('ascii')))
+                    mapping[iid] = mtch
+                    translatable = translatable.replace(mtch, iid)
+
+                for target in os.getenv('AUTOTRANSLATE').split(','):
                     try:
-                        r = requests.post(os.getenv('LIBRETRANSLATE_URL'),
-                                          json={"q": translatable, "source": "en", "target": target})
-                        if r.status_code == 200:
-                            translated = r.json()['translatedText']
+                        try:
+                            r = requests.post(os.getenv('LIBRETRANSLATE_URL'),
+                                              json={"q": translatable, "source": "en", "target": target})
+                            if r.status_code == 200:
+                                translated = r.json()['translatedText']
 
+                                for ee in mapping:
+                                    translated = translated.replace(ee, mapping[ee])
+
+                                langs[target] = translated
+                            else:
+                                raise Exception("Language {} not found".format(target))
+                        except:
+                            translated = translate(translatable, target, "en")
                             for ee in mapping:
                                 translated = translated.replace(ee, mapping[ee])
 
                             langs[target] = translated
-                        else:
-                            raise Exception("Language {} not found".format(target))
-                    except:
-                        translated = translate(translatable, target, "en")
-                        for ee in mapping:
-                            translated = translated.replace(ee, mapping[ee])
+                            pass
 
-                        langs[target] = translated
+                        print(langs, file=sys.stderr)
+
+
+                    except Exception as e:
+                        print('error', file=sys.stderr)
+                        print(target, file=sys.stderr)
+                        print(e, file=sys.stderr)
                         pass
 
-                    print(langs, file=sys.stderr)
+                requests.patch(directus, json=langs)
 
-
-                except Exception as e:
-                    print('error', file=sys.stderr)
-                    print(target, file=sys.stderr)
-                    print(e, file=sys.stderr)
-                    pass
-
-            requests.patch(directus, json=langs)
+            else:
+                requests.patch(directus, json={"retranslate": False})
 
     return 'ok'
 
