@@ -66,7 +66,8 @@ CREATE TABLE public.i18n (
     tr text,
     uk text,
     vi text,
-    zh text
+    zh text,
+    retranslate boolean DEFAULT false
 );
 
 
@@ -77,39 +78,40 @@ CREATE TABLE public.i18n (
 
 
 
-COPY public.directus_fields (collection, field, special, interface, options, display, display_options, readonly, hidden, sort, width, translations, note, conditions, required, "group", validation, validation_message) FROM stdin;
-i18n	key	\N	input	{"font":"monospace"}	formatted-value	{"font":"monospace","bold":true,"background":null,"color":"#3399FF"}	f	f	1	full	\N	Dot notation lowercase	\N	f	\N	\N	\N
-i18n	it	\N	input-multiline	\N	\N	\N	f	f	20	fill	\N	\N	\N	f	\N	\N	\N
-i18n	divider	alias,no-data	presentation-divider	{"title":"Languages","color":"#3399FF","inlineTitle":true}	\N	\N	f	f	9	full	\N	\N	\N	f	\N	\N	\N
-i18n	context	\N	input-multiline	\N	\N	\N	f	f	7	full	\N	Optional brief description of how this string is used	\N	f	\N	\N	\N
-i18n	completion_perc	\N	input	{"iconLeft":"percent","font":"monospace"}	formatted-value	{"font":"monospace","bold":true,"icon":"percent"}	t	t	4	half	\N	\N	\N	f	\N	\N	\N
-i18n	ca	\N	input-multiline	\N	\N	\N	f	f	11	fill	\N	\N	\N	f	\N	\N	\N
-i18n	cs	\N	input-multiline	\N	\N	\N	f	f	12	fill	\N	\N	\N	f	\N	\N	\N
-i18n	ja	\N	input-multiline	\N	\N	\N	f	f	21	fill	\N	\N	\N	f	\N	\N	\N
-i18n	nl	\N	input-multiline	\N	\N	\N	f	f	22	fill	\N	\N	\N	f	\N	\N	\N
-i18n	pl	\N	input-multiline	\N	\N	\N	f	f	23	fill	\N	\N	\N	f	\N	\N	\N
-i18n	pt	\N	input-multiline	\N	\N	\N	f	f	24	fill	\N	\N	\N	f	\N	\N	\N
-i18n	tr	\N	input-multiline	\N	\N	\N	f	f	29	fill	\N	\N	\N	f	\N	\N	\N
-i18n	uk	\N	input-multiline	\N	\N	\N	f	f	30	fill	\N	\N	\N	f	\N	\N	\N
-i18n	vi	\N	input-multiline	\N	\N	\N	f	f	31	fill	\N	\N	\N	f	\N	\N	\N
-i18n	zh	\N	input-multiline	\N	\N	\N	f	f	32	fill	\N	\N	\N	f	\N	\N	\N
-i18n	autotranslate	cast-boolean	boolean	{"label":"Auto-translated","iconOn":"brightness_auto","iconOff":"fiber_manual_record"}	boolean	{"iconOn":"brightness_auto","iconOff":"fiber_manual_record","colorOff":"#A2B5CD","colorOn":"#3399FF"}	f	f	5	half	\N	Flag to identify auto-translated strings on creation	\N	f	\N	\N	\N
-i18n	en	\N	input-multiline	\N	\N	\N	f	f	8	fill	\N	\N	\N	f	\N	\N	\N
-i18n	date_updated	date-updated,date-created	datetime	\N	datetime	{"relative":true}	t	t	2	half	\N	\N	\N	f	\N	\N	\N
-i18n	user_updated	user-updated	select-dropdown-m2o	{"template":"{{avatar.$thumbnail}} {{first_name}} {{last_name}}"}	user	\N	t	t	3	half	\N	\N	\N	f	\N	\N	\N
-i18n	category	\N	select-dropdown	{"allowOther":true,"allowNone":true,"choices":[{"text":"all","value":"all"},{"text":"personal-area","value":"personal-area"}]}	labels	{"font":"monospace","color":"#FFFFFF","background":"#3399FF","icon":"tag","choices":[{"text":"personal-area","value":"personal-area","foreground":"#FFFFFF","background":"#FFC23B"},{"text":"rental-car","value":"rental-car","foreground":"#FFFFFF","background":"#E35169"}]}	f	f	6	half	\N	Optional category to help searching / filtering	\N	f	\N	\N	\N
-i18n	bg	\N	input-multiline	\N	\N	\N	f	f	10	fill	\N	\N	\N	f	\N	\N	\N
-i18n	da	\N	input-multiline	\N	\N	\N	f	f	13	fill	\N	\N	\N	f	\N	\N	\N
-i18n	de	\N	input-multiline	\N	\N	\N	f	f	14	fill	\N	\N	\N	f	\N	\N	\N
-i18n	el	\N	input-multiline	\N	\N	\N	f	f	15	fill	\N	\N	\N	f	\N	\N	\N
-i18n	fr	\N	input-multiline	\N	\N	\N	f	f	16	fill	\N	\N	\N	f	\N	\N	\N
-i18n	ro	\N	input-multiline	\N	\N	\N	f	f	25	fill	\N	\N	\N	f	\N	\N	\N
-i18n	ru	\N	input-multiline	\N	\N	\N	f	f	26	fill	\N	\N	\N	f	\N	\N	\N
-i18n	hi	\N	input-multiline	\N	\N	\N	f	f	17	fill	\N	\N	\N	f	\N	\N	\N
-i18n	hr	\N	input-multiline	\N	\N	\N	f	f	18	fill	\N	\N	\N	f	\N	\N	\N
-i18n	es	\N	input-multiline	\N	\N	\N	f	f	27	fill	\N	\N	\N	f	\N	\N	\N
-i18n	th	\N	input-multiline	\N	\N	\N	f	f	28	fill	\N	\N	\N	f	\N	\N	\N
-i18n	hu	\N	input-multiline	\N	\N	\N	f	f	19	fill	\N	\N	\N	f	\N	\N	\N
+COPY public.directus_fields (id, collection, field, special, interface, options, display, display_options, readonly, hidden, sort, width, translations, note, conditions, required, "group", validation, validation_message) FROM stdin;
+33	i18n	retranslate	cast-boolean	boolean	{"iconOn":"done","colorOn":"#2ECDA7","iconOff":"refresh","colorOff":null,"label":"Re-Translate"}	boolean	{"iconOn":null,"iconOff":null}	f	f	7	half	\N	\N	\N	f	\N	\N	\N
+7	i18n	cs	\N	input-multiline	\N	\N	\N	f	f	13	fill	\N	\N	\N	f	\N	\N	\N
+22	i18n	da	\N	input-multiline	\N	\N	\N	f	f	14	fill	\N	\N	\N	f	\N	\N	\N
+23	i18n	de	\N	input-multiline	\N	\N	\N	f	f	15	fill	\N	\N	\N	f	\N	\N	\N
+24	i18n	el	\N	input-multiline	\N	\N	\N	f	f	16	fill	\N	\N	\N	f	\N	\N	\N
+25	i18n	fr	\N	input-multiline	\N	\N	\N	f	f	17	fill	\N	\N	\N	f	\N	\N	\N
+28	i18n	hi	\N	input-multiline	\N	\N	\N	f	f	18	fill	\N	\N	\N	f	\N	\N	\N
+29	i18n	hr	\N	input-multiline	\N	\N	\N	f	f	19	fill	\N	\N	\N	f	\N	\N	\N
+32	i18n	hu	\N	input-multiline	\N	\N	\N	f	f	20	fill	\N	\N	\N	f	\N	\N	\N
+2	i18n	it	\N	input-multiline	\N	\N	\N	f	f	21	fill	\N	\N	\N	f	\N	\N	\N
+8	i18n	ja	\N	input-multiline	\N	\N	\N	f	f	22	fill	\N	\N	\N	f	\N	\N	\N
+9	i18n	nl	\N	input-multiline	\N	\N	\N	f	f	23	fill	\N	\N	\N	f	\N	\N	\N
+1	i18n	key	\N	input	{"font":"monospace"}	formatted-value	{"font":"monospace","bold":true,"background":null,"color":"#3399FF"}	f	f	1	full	\N	Dot notation lowercase	\N	f	\N	\N	\N
+18	i18n	date_updated	date-updated,date-created	datetime	\N	datetime	{"relative":true}	t	f	2	half	\N	\N	\N	f	\N	\N	\N
+19	i18n	user_updated	user-updated	select-dropdown-m2o	{"template":"{{avatar.$thumbnail}} {{first_name}} {{last_name}}"}	user	\N	t	t	3	half	\N	\N	\N	f	\N	\N	\N
+5	i18n	completion_perc	\N	input	{"iconLeft":"percent","font":"monospace"}	formatted-value	{"font":"monospace","bold":true,"icon":"percent"}	t	t	4	half	\N	\N	\N	f	\N	\N	\N
+16	i18n	autotranslate	cast-boolean	boolean	{"label":"Auto-translated","iconOn":"brightness_auto","iconOff":"fiber_manual_record"}	boolean	{"iconOn":"brightness_auto","iconOff":"fiber_manual_record","colorOff":"#A2B5CD","colorOn":"#3399FF"}	f	f	5	half	\N	Flag to identify auto-translated strings on creation	\N	f	\N	\N	\N
+20	i18n	category	\N	select-dropdown	{"allowOther":true,"allowNone":true,"choices":[{"text":"all","value":"all"},{"text":"personal-area","value":"personal-area"}]}	labels	{"font":"monospace","color":"#FFFFFF","background":"#3399FF","icon":"tag","choices":[{"text":"personal-area","value":"personal-area","foreground":"#FFFFFF","background":"#FFC23B"},{"text":"rental-car","value":"rental-car","foreground":"#FFFFFF","background":"#E35169"}]}	f	f	6	half	\N	Optional category to help searching / filtering	\N	f	\N	\N	\N
+4	i18n	context	\N	input-multiline	\N	\N	\N	f	f	8	full	\N	Optional brief description of how this string is used	\N	f	\N	\N	\N
+17	i18n	en	\N	input-multiline	\N	\N	\N	f	f	9	fill	\N	\N	\N	f	\N	\N	\N
+3	i18n	divider	alias,no-data	presentation-divider	{"title":"Languages","color":"#3399FF","inlineTitle":true}	\N	\N	f	f	10	full	\N	\N	\N	f	\N	\N	\N
+21	i18n	bg	\N	input-multiline	\N	\N	\N	f	f	11	fill	\N	\N	\N	f	\N	\N	\N
+6	i18n	ca	\N	input-multiline	\N	\N	\N	f	f	12	fill	\N	\N	\N	f	\N	\N	\N
+10	i18n	pl	\N	input-multiline	\N	\N	\N	f	f	24	fill	\N	\N	\N	f	\N	\N	\N
+11	i18n	pt	\N	input-multiline	\N	\N	\N	f	f	25	fill	\N	\N	\N	f	\N	\N	\N
+26	i18n	ro	\N	input-multiline	\N	\N	\N	f	f	26	fill	\N	\N	\N	f	\N	\N	\N
+27	i18n	ru	\N	input-multiline	\N	\N	\N	f	f	27	fill	\N	\N	\N	f	\N	\N	\N
+30	i18n	es	\N	input-multiline	\N	\N	\N	f	f	28	fill	\N	\N	\N	f	\N	\N	\N
+31	i18n	th	\N	input-multiline	\N	\N	\N	f	f	29	fill	\N	\N	\N	f	\N	\N	\N
+12	i18n	tr	\N	input-multiline	\N	\N	\N	f	f	30	fill	\N	\N	\N	f	\N	\N	\N
+13	i18n	uk	\N	input-multiline	\N	\N	\N	f	f	31	fill	\N	\N	\N	f	\N	\N	\N
+14	i18n	vi	\N	input-multiline	\N	\N	\N	f	f	32	fill	\N	\N	\N	f	\N	\N	\N
+15	i18n	zh	\N	input-multiline	\N	\N	\N	f	f	33	fill	\N	\N	\N	f	\N	\N	\N
 \.
 
 
@@ -136,6 +138,7 @@ i18n	\N	#3399FF	\N	\N	\N	\N	25	\N	all	\N	#app, #main-content, body {\n  --primar
 
 COPY public.directus_webhooks (name, method, url, status, data, actions, collections, headers) FROM stdin;
 Autotranslate	POST	http://i18n.hookserver/autotranslate	active	t	create	i18n	\N
+Autotranslate-update	POST	http://i18n.hookserver/autotranslate-update	active	t	update	i18n	\N
 \.
 
 
